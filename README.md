@@ -1,0 +1,108 @@
+# The Rothamsted carbon model (RothC)
+
+## Purpose
+
+Roth C models the turnover of organic carbon in non-waterlogged top-soil.  It accounts for the effects of soil texture, temperature, moisture content and plant cover on the turnover process. It uses a monthly time step to calculate total organic carbon (t ha<sup>-1</sup>), microbial biomass carbon (t ha<sup>-1</sup>) and Δ<sup>14</sup>C (from which the equivalent radiocarbon age of the soil can be calculated). 
+
+## Development history
+
+The first version of RothC created by David Jenkinson and James Rayner in 1977 (Jenkinson and Rayner, 1977).
+
+In 1987 an updated version was published, see Jenkinson et al. (1987).  This version included the prediction of the radiocarbon age of the soil, the pools POM (physically stabilized organic matter) and COM (chemically stabilized organic matter) were replaced with Hum (humified organic matter) and IOM (inert organic matter), and the microbial biomass pool was split into BioA (autochthonous biomass) and BioZ (zymogenous biomass).  
+
+**In 1990, the two biomass pools were combined into a single pool (Jenkinson, 1990) this version is the standard version of the model, that this code refers to.**
+
+Other published developments of the model include:
+
+Farina et al. (2013) modified the soil water dynamics for semi-arid regions.
+
+Giongo et al. (2020) created a daily version and modified the soil water dynamics, for Caatinga shrublands, in the semiarid region, North-East Brazil.
+
+ 
+## Description of files included
+
+### RothC_description.docx
+This file contains the description of the model.
+
+
+### RothC.R
+This file contains the RothC code. Details of the inputs required, pools modelled, and units are in the code.
+Note: the global assign (<<-) used for SMD within the RMF_Moist() function is required for the expected behaviour of the model (aligning with results from the other language versions). 
+Users with experience in R can remap the inputs to environment variables and objects if more convenient. We have not provided code for this due to the many ways individuals can organise their data.
+
+### RothC_function.R
+This file contains the RothC code wrapped in a function with the argument “file” used to supply the filepath of the input file. This is a minimal change but is to provide users with less experience a ready-made function (RothC_model). Those with more experience can enhance this function, and the code, linking directly to environment objects and variables. 
+
+### Using_RothC_function.R
+This file contains the simple code to load the function to your R environment and run the model with the example file. If the example file is not in the same working directory, the corresponding filepath would need to be provided as part of the filename string (i.e. “filepath/RothC_input.dat”).
+
+
+### RothC_input.dat  
+This file contains input variables for the model.  
+
+At the start of the file values for **clay** (%), **soil depth** (cm), **inert organic matter** (IOM, t C ha<sup>-1</sup>) and **number of steps** (nsteps) are recorded.  
+Following that there is a table which records monthly data on **year**, **month**, **percentage of modern carbon**  (%), **mean air temperature** (Temp, °C), **total monthly rainfall** (Rain, mm), **total monthly open-pan evaporation** (Evap, mm), **all carbon input entering the soil (from plants, roots, root exudates)** (Pl_inp, t C ha<sup>-1</sup>), **carbon input from organic amendment** (OA_inp, t C ha<sup>-1</sup>), **plant cover** (PC, 0 for no plants e.g. bare or post-harvest, 1 for plants e.g. crop or grass), and the **DPM/RPM ratio** (DPM_RPM) of the carbon inputs from plants.
+
+### year_results.out
+This file contains the yearly values of the SOC (both the pools and Total) and the delta 14-carbon.
+
+The columns are:  
+**Year**  
+**Month** 	- Always December for the yearly output  
+**DPM_t_C_ha** 	- Decomposable plant material (t C ha<sup>-1</sup>)  
+**RPM_t_C_ha** 	- Resistant plant material (t C ha<sup>-1</sup>)  
+**BIO_t_C_ha** 	- Microbial biomass (t C ha<sup>-1</sup>)  
+**HUM_t_C_ha**	    - Humified organic matter (t C ha<sup>-1</sup>)  
+**IOM_t_C_ha** 	- Inert organic matter (t C ha<sup>-1</sup>)  
+**SOC_t_C_ha**	    - Total soil organic carbon (t C ha<sup>-1</sup>)
+**CO2_t_C_ha**     - Accumulated carbon dioxide (t C ha<sup>-1</sup>)
+**deltaC** 	- delta <sup>14</sup>C (‰)  
+
+
+The total organic carbon (soil organic carbon) is equal to the sum of the 5 pools. 
+
+TOC or SOC = DRM + RPM + BIO + HUM + IOM 
+     
+### month_results.out
+This file contains the monthly inputs, rate modifying factors, SOC pools.
+
+**Year**  
+**Month**  
+**Pl_inp_t_C_ha**	- C input (t C ha<sup>-1</sup>)  
+**OA_inp_t_C_ha**	- Farmyard manure (t C ha<sup>-1</sup>)  
+**TEMP_C**		    - Air temperature (C)  
+**RM_TMP**		    - Rate modifying factor for temperature (-)  
+**RAIN_mm**		    - Rainfall (mm)  
+**PEVAP_mm**		- Open pan evaporation (mm)  
+**SWC_mm**		    - Accumulated soil water deficit (mm)  
+**RM_Moist**		- Rate modifying factor for soil moisture (-)  
+**PC**			    - Soil plant cover (0 bare or 1 covered)  
+**RM_PC**			- rate modifying factor for crop cover  
+**DPM_t_C_ha**		- Decomposable plant material (t C ha<sup>-1</sup>)  
+**RPM_t_C_ha**		- Resistant plant material (t C ha<sup>-1</sup>)  
+**BIO_t_C_ha**		- Microbial biomass (t C ha<sup>-1</sup>)  
+**HUM_t_C_ha**		- Humified organic matter (t C ha<sup>-1</sup>)  
+**IOM_t_C_ha**		- Inert organic matter (t C ha<sup>-1</sup>)  
+**SOC_t_C_ha**		- Total soil organic carbon (t C ha<sup>-1</sup>)  
+**CO2_t_C_ha**      - Accumulated carbon dioxide (t C ha<sup>-1</sup>)
+
+## Requirements
+The code was written in R version 4.2.3. but only uses basic R functions, alongside those defined for the model.
+The code as written uses an identical input file structure to the other languages we have releases for RothC (Fortran and Python).
+
+
+**Example of how to run the model**  
+The file RothC_input.dat contains all the input data needed to run the model. The month results (month_results.out) and year results (year_results.out) files correspond to this input file as an example. 
+The model is normally run to equilibrium using average temperature, rainfall, open pan evaporation, an average carbon input to the soil, the equilibrium run is to initialise the soil carbon pools. Once the soil carbon pools have been initialised, the model is run for the period of interest. The met data (temperature, rainfall and evaporation) can be average or actual weather data. The carbon input to the soil can be: 1) adjusted so the modelled output matches the measured data, or 2) can be estimated from yield or biomass data (Bolinder et al., 2007), or NPP data.  
+
+As mentioned in the file descriptions, the code has been provided as a standalone script and as a function script taking the filepath of the input file as an argument. 
+
+## References
+
+Bolinder MA, Janzen HH, Gregorich EG, Angers DA, VandenBygaart AJ. An approach for estimating net primary productivity and annual carbon inputs to soil for common agricultural crops in Canada. Agriculture, Ecosystems & Environment 2007; 118: 29-42.  
+Farina R, Coleman K, Whitmore AP. Modification of the RothC model for simulations of soil organic C dynamics in dryland regions. Geoderma 2013; 200: 18-30.  
+Giongo V, Coleman K, Santana MD, Salviano AM, Olszveski N, Silva DJ, et al. Optimizing multifunctional agroecosystems in irrigated dryland agriculture to restore soil carbon - Experiments and modelling. Science of the Total Environment 2020; 725.  
+Jenkinson DS. The Turnover of Organic-Carbon and Nitrogen in Soil. Philosophical Transactions of the Royal Society of London, Series B: Biological Sciences 1990; 329: 361-368.  
+Jenkinson DS, Hart PBS, Rayner JH, Parry LC. Modelling the turnover of organic matter in long-term experiments at Rothamsted. INTECOL Bulletin 1987; 15: 1-8.  
+Jenkinson DS, Rayner JH. Turnover of soil organic matter in some of the Rothamsted classical experiments. Soil Science 1977; 123: 298-305.  
+
