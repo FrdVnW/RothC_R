@@ -74,7 +74,7 @@ This file contains the monthly inputs, rate modifying factors, SOC pools.
 **RM_TMP**		    - Rate modifying factor for temperature (-)  
 **RAIN_mm**		    - Rainfall (mm)  
 **PEVAP_mm**		- Open pan evaporation (mm)  
-**SWC_mm**		    - Accumulated soil water deficit (mm)  
+**SMD_mm**		    - Accumulated soil water deficit (mm)  
 **RM_Moist**		- Rate modifying factor for soil moisture (-)  
 **PC**			    - Soil plant cover (0 bare or 1 covered)  
 **RM_PC**			- rate modifying factor for crop cover  
