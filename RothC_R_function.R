@@ -60,7 +60,11 @@
 ###############################################################################
 
 # Model functions
-RothC_model <- function(filename){
+RothC_model <- function(filename,
+                        my.sep = '',
+                        container = "my.simul",
+                        op.print = TRUE
+                        ){
   # Calculates the rate modifying factor for temperature (RMF_Temp)
   RMF_Temp <- function(TEMP){
     if(TEMP < -5.0){
@@ -134,12 +138,12 @@ RothC_model <- function(filename){
   TOC1 <- 0.0
   
   # read in RothC input data file 
-  df_head <- read.csv(filename, skip = 3, header = 1, nrows = 1, sep = '')# sep = '' can be removed if file is comma delimited
+  df_head <- read.csv(filename, skip = 3, header = 1, nrows = 1, sep = my.sep)# sep = '' can be removed if file is comma delimited
   clay <- df_head[[1,'clay']]
   depth <- df_head[[1,'depth']]
   IOM <- df_head[[1,'iom']]
   nsteps <- df_head[[1,'nsteps']]
-  df <- read.csv(filename, skip = 6, header = 1, sep = '')# sep = '' can be removed if file is comma delimited
+  df <- read.csv(filename, skip = 6, header = 1, sep = my.sep)# sep = '' can be removed if file is comma delimited
   colnames(df) <- c('t_year', 't_month', 't_mod', 't_temp','t_rain','t_evap', 't_Pl_inp', 't_OA_inp', 't_PC', 't_DPM_RPM')
   
   # run RothC to equilibrium using first 12 months of input file df (spin-up)
@@ -489,7 +493,10 @@ RothC_model <- function(filename){
       timeFact_index <- as.integer(i/timeFact)
       year_list[[timeFact_index]] <- data.frame(df[i,'t_year'], df[i,'t_month'],DPM, RPM, Bio, Hum, IOM, SOC, co2_tot, Total_Delta)
       colnames(year_list[[timeFact_index]]) = c('Year','Month','DPM_t_C_ha','RPM_t_C_ha','Bio_t_C_ha','Hum_t_C_ha','IOM_t_C_ha','SOC_t_C_ha',"CO2_t_C_ha",'deltaC')
-      print(paste(i, DPM, RPM, Bio, Hum, IOM, SOC, Total_Delta))
+      if (op.print) {
+          print(paste(i, DPM, RPM, Bio, Hum, IOM, SOC, Total_Delta))
+      }
+      
     }
     
   }
@@ -497,12 +504,31 @@ RothC_model <- function(filename){
   output_years <- do.call(rbind,year_list)
   
   output_months <- do.call(rbind, month_list)
-  
+    file.year <- paste0('containers/',
+                        container,
+                        '/data-output/year_results.csv'
+                        )
+    
   write.csv(output_years,
-            'year_results.csv',
+            file = file.year,
             row.names = FALSE)
-  
+
+    cat("Ok - yearly results written : in ",
+        file.year,"\n\n")
+
+    file.month <- paste0('containers/',
+                         container,
+                         '/data-output/month_results.csv'
+                         )
   write.csv(output_months,
-            'month_results.csv',
-            row.names = FALSE)
+              file = file.month,
+              row.names = FALSE)
+  cat("Ok - monthly results written : in ",
+      file.month,"\n\n")
+
+  res <- list()
+  res$year <- output_years
+  res$month <- output_months
+
+  return(res)
 }
