@@ -1,4 +1,5 @@
 source("RothC_R_function.R")
+source("./xlsx_to_dat_RothC_R.R")
 
 ## RothC_model(filename = "RothC_input.dat")
 
@@ -19,7 +20,6 @@ res <- RothC_model(
     container = "my.run.test0",
     op.print = FALSE
     )
-
 
 res$year
 
