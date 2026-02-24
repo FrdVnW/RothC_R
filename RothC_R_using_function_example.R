@@ -1,4 +1,14 @@
-source("RothC_R_function.R")
+
+library(readxl)
+library(dplyr)
+library(lubridate)
+
+
+
+source("./RothC_R_function.R")
+source("/home/fred/Code/R/RothC_R/RothC_R_function.R")
+
+
 source("./xlsx_to_dat_RothC_R.R")
 
 ## RothC_model(filename = "RothC_input.dat")
@@ -24,5 +34,27 @@ res <- RothC_model(
 res$year
 
 res$month
+
+
+
+## ---------------
+## Belgian C input
+## ---------------
+
+crop.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/crop_residues.xlsx")
+eom.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/eom.xlsx")
+
+
+View((crop.cin[c("ID","Culture")]))
+
+crop.id.SEQ <- c(15,8,7)
+
+
+
+
+## View(crop.cin)
+
+
+
 
 
