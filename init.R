@@ -117,30 +117,24 @@ rothc.calendar3 <- expand_irrigation_calendar(
   irrig_stop_var = "irrig.date.stop"
 )
 ## View(rothc.calendar3)
-
-rotation_calendar <- rothc.calendar3
-df = df.crop
-eom_id_var = "eom.id"
-eom_date_var = "eom.date"
-eom_q_var = "eom.q"
-
-
-
-
-
-
-
-
-
 rothc.calendar4 <- expand_eom_calendar_simple(
-    rotation_calendar = rothc.calendar,
-    df = df.crop.eom,
+    rotation_calendar = rothc.calendar3,
+    df = df.crop,
     eom_id_var = "eom.id",
     eom_date_var = "eom.date",
     eom_q_var = "eom.q"
 )
-
 View(rothc.calendar4)
+
+
+write.csv(rothc.calendar4,
+          file = "./data-output/first_output.csv"
+          )
+
+
+
+
+
 
 
 ## ##########

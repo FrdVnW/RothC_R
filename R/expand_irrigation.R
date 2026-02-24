@@ -33,7 +33,7 @@ expand_irrigation_calendar <- function(
     ## Create irrigation column
     cal$irrigation <- 0
     
-    month_id <- function(y, m) y * 12 + m
+    ## month_id <- function(y, m) y * 12 + m
     
     for (i in seq_len(nrow(cal))) {
         

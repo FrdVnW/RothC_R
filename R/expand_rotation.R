@@ -4,6 +4,8 @@ expand_rotation_calendar <- function(
                                      harvest.var = "harvest.date",
                                      start_year = 2020,
                                      n_years = 30) {
+
+    false_start_year <- start_year - dim(df)[1]
     
     df <- df %>%
         mutate(
@@ -23,13 +25,13 @@ expand_rotation_calendar <- function(
     ##   as.numeric(substr(df[[harvest.var]], 4, 5))
     ## )
     
-    ## # Remove rows where crop does not exist
+    ## ## Remove rows where crop does not exist
     ## df <- df[!(is.na(df$sow_month) | is.na(df$harv_month)), ]
     
     
     
     calendar <- expand.grid(
-        year  = start_year:(start_year + n_years - 1),
+        year  = false_start_year:(start_year + n_years - 1),
         month = 1:12
     ) %>%
         arrange(year, month) %>%
@@ -42,7 +44,7 @@ expand_rotation_calendar <- function(
     
     month_id <- function(y, m) y * 12 + m
     
-    current_year  <- start_year
+    current_year  <- false_start_year
     current_month <- df$sow_month[1]
     crop_index    <- 1
     end_year      <- start_year + n_years - 1
@@ -86,7 +88,36 @@ expand_rotation_calendar <- function(
             
             calendar$harvest[calendar$year == harv_year &
                              calendar$month == harv_m] <- TRUE
-            
+
+
+            ## After harvest, assign next crop.id immediately
+
+            next_index <- crop_index + 1
+            if (next_index > nrow(df)) next_index <- 1
+
+            next_cropid <- df$crop.id[next_index]
+
+            ## assign crop.id from month AFTER harvest until next sowing
+            start_fill_id <- month_id(harv_year, harv_m) + 1
+
+            ## find next sowing
+            next_sow_m <- df$sow_month[next_index]
+
+            if (harv_m <= next_sow_m) {
+                next_sow_year <- harv_year
+            } else {
+                next_sow_year <- harv_year + 1
+            }
+
+            end_fill_id <- month_id(next_sow_year, next_sow_m) - 1
+
+            fill_idx <- which(
+                month_id(calendar$year, calendar$month) >= start_fill_id &
+                month_id(calendar$year, calendar$month) <= end_fill_id
+            )
+
+            calendar$crop.id[fill_idx] <- next_cropid
+
             ## move pointer:
             ## next crop can start sowing in SAME harvest month
             current_year  <- harv_year
@@ -97,5 +128,5 @@ expand_rotation_calendar <- function(
         }
     }
     
-    calendar
+    calendar[-(1:(12*dim(df)[1])),]
 }
