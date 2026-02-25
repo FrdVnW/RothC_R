@@ -1,8 +1,8 @@
-expand_eom_calendar_simple <- function(rotation_calendar,
-                                       df,
-                                       eom_id_var,
-                                       eom_date_var,
-                                       eom_q_var) {
+expand_eom_calendar <- function(rotation_calendar,
+                                df,
+                                eom_id_var,
+                                eom_date_var,
+                                eom_q_var) {
     
     ## Extract eom_app_q months safely (allow NA)
     df$eom_month <- ifelse(

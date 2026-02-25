@@ -3,8 +3,14 @@ init.container <- function(name){
                recursive = TRUE,
                showWarnings = FALSE
                )
-    dir.create(paste0("./containers/",name,"/data-output/"),
-               recursive = TRUE,
-               showWarnings = FALSE
-               )
+
+    paths <- file.path("./containers", name,
+                       c("data-output",
+                         "data-raw",
+                         "fig"))
+
+    lapply(paths, dir.create,
+           recursive = TRUE,
+           showWarnings = FALSE)
+    return("ok")
 }

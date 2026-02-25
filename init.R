@@ -1,43 +1,99 @@
 rm(list=ls())
 
-library(readxl)
 library(dplyr)
+library(ggplot2)
+library(readxl)
 library(lubridate)
 
-source("./RothC_R_function.R")
 
+## Main Roth-C functions
+source("./RothC_R_script.R")
+
+## ==========
+## Run Roth-C
+## ==========
+
+## Case 1a : you have your input.dat file
+## --------------------------------------
+
+## if needed
+## setwd("B:/Github_RothC_development/RothC_R/")
+
+## a - run
+res <- ROTH_C("./RothC_input.dat")
+
+## b - print results
+
+res[["output_years"]]
+
+res[["output_months"]]
+
+## c - export
+EXPORT_ROTHC_RES(
+    res
+)
+
+## Case 1b : same but with container
 source("./R/base.R")
+
+my.container <- "1b_from_dat_file"
+init.container(my.container) ## at least once
+
+## a - run from a dat file in the container
+res <- ROTH_C("./containers/1b_from_dat_file/data-raw/.")
+
+EXPORT_ROTHC_RES(
+    res,
+    container = my.container
+)
+
+## Case 2 : build the dat file and run a simulation
+source("./R/plotting_RothC_res.R")
+source("./R/xlsx_to_dat_RothC_R.R")
+
+## 2a : the dat file is in a 2-sheets spreadsheet file
+## ---------------------------------------------------
+init.container("my.run.test0")
+
+f.rothc.xlsx.2.dat(
+    "./containers/my.run.test0/data-raw/RothC_input.xlsx",
+    "./containers/my.run.test0/data-raw/RothC_input.dat",
+    vers = 0
+)
+
+res <- ROTH_C(
+    filename = "./containers/my.run.test0/data-raw/RothC_input.dat"
+    )
+
+EXPORT_ROTHC_RES(
+    res,
+    "my.run.test0"
+)
+
+## Plotting direct
+PLOT_ROTHC_RES(res = res)
+PLOT_ROTHC_RES(res = res, step = "months")
+
+## Save in objects and files
+g.yearly.res <- PLOT_ROTHC_RES(res = res)
+## g.yearly.res ## show
+ggsave("./containers/my.run.test0/fig/yearly_res.png")
+
+g.monthly.res <- PLOT_ROTHC_RES(res = res, step = "months")
+## g.monthly.res ## show
+ggsave("./containers/my.run.test0/fig/monthly_res.png")
+
+
+
+## 2b Build the dat file from scratch (expand from a crop rotation)
+## ----------------------------------------------------------------
+
+init.container("my.run.test1")
+
 source("./R/expand_rotation.R")
 source("./R/expand_cover_crop.R")
 source("./R/expand_eom_application.R")
 source("./R/expand_irrigation.R")
-
-source("./R/xlsx_to_dat_RothC_R.R")
-
-## RothC_model(filename = "RothC_input.dat")
-
-## year_results <- read.csv("year_results.csv")
-
-## month_results <- read.csv("month_results.csv")
-
-f.rothc.xlsx.2.dat(
-    "./data-raw/RothC_input.xlsx",
-    "./data-raw/RothC_input.dat",
-    vers = 0
-)
-
-init.container("my.run.test0")
-
-res <- RothC_model(
-    filename = "./data-raw/RothC_input.dat",
-    container = "my.run.test0",
-    op.print = FALSE
-    )
-
-res$year
-
-res$month
-
 
 
 ## ---------------
@@ -47,39 +103,21 @@ res$month
 crop.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/crop_residues.xlsx")
 eom.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/eom.xlsx")
 
+## == a - Crop management input data ==================================
 
-View((crop.cin[c("ID","Culture")]))
-
+## example data 3Y rotation Sugar beet - Winter Wheat - Winter Barley
 crop.id.SEQ <- c(15,8,7)
-
-
-
-
-## View(crop.cin)
-
-
-##################
-##
-## Scratch zone ##
-##
-##################
-
-## example data
-## ------------
-
-
-crop.id.SEQ <- c(15,8,7)
-sowing.date.SEQ <- c("01-04","01-11","01-10")
-harvest.date.SEQ <- c("01-11","01-08","01-07")
+sowing.date.SEQ <- c("03-04"      , "06-10"       , "10-09")
+harvest.date.SEQ <- c("05-10"      , "06-08"       , "02-07")
 covercrop.id.SEQ = c(NA,1,1)
 covercrop.sowing.date.SEQ = c(NA,"01-08","01-08")
 covercrop.harvest.date.SEQ = c(NA,"01-10","01-02")
 irrig.q.SEQ = c(30,0,0)
 irrig.date.start.SEQ = c("01-06",NA,NA)
 irrig.date.stop.SEQ = c("31-08",NA,NA)
-eom.id.SEQ = c(100,NA,NA)
-eom.date.SEQ = c("15-01",NA,NA)
-eom.q.SEQ = c(150,NA,NA)
+eom.id.SEQ = c(6,NA,NA)
+eom.date.SEQ = c("15-09",NA,NA)
+eom.q.SEQ = c(30,NA,NA)
 starting.year = 2000
 n.year = 30
 
@@ -99,8 +137,10 @@ df.crop <- data.frame(
     eom.q = eom.q.SEQ
 )
 
+## == b - Initiate calender with crop rotation =========================
 rothc.calendar <- expand_rotation_calendar(df.crop)
 
+## == c - Add cover crops information ==================================
 rothc.calendar2 <- expand_cover_crop(
     rotation_calendar = rothc.calendar,
     df = df.crop,
@@ -109,6 +149,7 @@ rothc.calendar2 <- expand_cover_crop(
     "covercrop.harvest.date"
 )
 
+## == c - Add irrigation application ===================================
 rothc.calendar3 <- expand_irrigation_calendar(
   rotation_calendar = rothc.calendar2,
   df = df.crop,
@@ -117,19 +158,76 @@ rothc.calendar3 <- expand_irrigation_calendar(
   irrig_stop_var = "irrig.date.stop"
 )
 ## View(rothc.calendar3)
-rothc.calendar4 <- expand_eom_calendar_simple(
+
+## == d - Add external organic matter application =======================
+rothc.calendar4 <- expand_eom_calendar(
     rotation_calendar = rothc.calendar3,
     df = df.crop,
     eom_id_var = "eom.id",
     eom_date_var = "eom.date",
     eom_q_var = "eom.q"
 )
-View(rothc.calendar4)
+## View(rothc.calendar4)
 
 
-write.csv(rothc.calendar4,
-          file = "./data-output/first_output.csv"
-          )
+## == e - export intermediate file
+write.csv(
+    rothc.calendar4,
+    file = "./containers/my.run.test1/data-output/raw_calendar.csv"
+)
+
+## == f - compute C input from crops, cover crops and eom ================
+
+h(rothc.calendar4,15)
+
+h(crop.cin)
+
+
+
+
+rothc.calendar5 <- rothc.calendar4 |>
+    dplyr::left_join(crop.cin, by = join_by(crop.id == id))
+    
+View(rothc.calendar5)
+
+
+
+
+
+
+## == g - get meteo data =================================================
+source("~/Code/R/fredtoolbox/10_meteo.R")
+
+df.agromet <- read.agromet.datafile(
+    "~/Code/Projects/momatorsow/data-raw/Sombreffe_tsa_plu_etp",
+    ## "~/Code/Projects/momatorsow/data-raw/27_010985_171020_jour.txt"
+    type = "rds"
+)
+
+df.meteo <- compute.agromet.stat(df.agromet)
+
+
+
+
+
+
+
+
+##################
+##
+## Scratch zone ##
+##
+##################
+
+## View(crop.cin)
+## View((crop.cin[c("ID","Culture")]))
+## crop.id.SEQ <- c(15,8,7)
+
+
+
+
+
+
 
 
 
