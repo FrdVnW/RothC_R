@@ -1,9 +1,9 @@
 expand_irrigation_calendar <- function(
                                        rotation_calendar,
                                        df,
-                                       irrig_q_var,
-                                       irrig_start_var,
-                                       irrig_stop_var
+                                       irrig_q_var = "irrig.q",
+                                       irrig_start_var = "irrig.date.start",
+                                       irrig_stop_var = "irrig.date.stop"
                                        ) {
     
     ## Extract irrigation months safely (allow NA)

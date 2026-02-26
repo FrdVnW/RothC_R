@@ -17,6 +17,20 @@ f.rothc.xlsx.2.dat <- function(
     } else {
     }
     
+    f.rothc.dataframe.2.dat(
+        fixed.values,
+        simul.values,
+        output.dat.file
+    )
+        
+}
+
+
+f.rothc.dataframe.2.dat <- function(
+                                    df.fixed.values,
+                                    df.simul.values,
+                                    output.dat.file = "./data-output/RothC_input.dat"
+                                    ){    
     cat(
         "## example input data to run RothC for a number of years\n",
         "## clay and depth are only needed once, other data are monthly jan-dec\n",
@@ -26,7 +40,7 @@ f.rothc.xlsx.2.dat <- function(
     )
     suppressWarnings(
         write.table(
-            fixed.values,
+            df.fixed.values,
             file = output.dat.file,
             append = TRUE, quote = F, sep = "\t", row.names=F, col.names=T
         )
@@ -39,7 +53,7 @@ f.rothc.xlsx.2.dat <- function(
     )
     suppressWarnings(
         write.table(
-            simul.values,
+            df.simul.values,
             file = output.dat.file,
             append = TRUE, quote = F, sep = "\t", row.names=F, col.names=T
         )

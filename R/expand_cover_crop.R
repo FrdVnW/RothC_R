@@ -1,8 +1,8 @@
 expand_cover_crop <- function(rotation_calendar,
                               df,
-                              cover_id_var,
-                              cover_start_var,
-                              cover_stop_var) {
+                              cover_id_var = "covercrop.id",
+                              cover_start_var = "covercrop.sowing.date",
+                              cover_stop_var = "covercrop.destruction.date") {
   
   # Safe month extraction
   get_month <- function(x){

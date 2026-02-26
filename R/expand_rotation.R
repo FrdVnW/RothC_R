@@ -27,16 +27,16 @@ expand_rotation_calendar <- function(
     
     ## ## Remove rows where crop does not exist
     ## df <- df[!(is.na(df$sow_month) | is.na(df$harv_month)), ]
-    
-    
-    
+        
     calendar <- expand.grid(
         year  = false_start_year:(start_year + n_years - 1),
         month = 1:12
     ) %>%
         arrange(year, month) %>%
         mutate(
+            prevcrop.id = NA,
             crop.id = NA,
+            nextcrop.id = NA,
             active  = 0,
             sowing  = FALSE,
             harvest = FALSE
@@ -47,6 +47,8 @@ expand_rotation_calendar <- function(
     current_year  <- false_start_year
     current_month <- df$sow_month[1]
     crop_index    <- 1
+    prevcrop_index <- nrow(df) 
+    nextcrop_index <- min(crop_index+1,nrow(df))
     end_year      <- start_year + n_years - 1
 
     if (dim(df)[1] > 0){
@@ -56,6 +58,8 @@ expand_rotation_calendar <- function(
             sow_m  <- df$sow_month[crop_index]
             harv_m <- df$harv_month[crop_index]
             cropid <- df$crop.id[crop_index]
+            prevcropid <- df$crop.id[prevcrop_index]
+            nextcropid <- df$crop.id[nextcrop_index]
             
             ## --- find sowing year (>= current month allowed) ---
             if (current_month <= sow_m) {
@@ -75,11 +79,15 @@ expand_rotation_calendar <- function(
             
             ## activate months INCLUDING harvest month
             idx <- which(
+                is.na(calendar$crop.id) &
                 month_id(calendar$year, calendar$month) >= month_id(sow_year, sow_m) &
                 month_id(calendar$year, calendar$month) <= month_id(harv_year, harv_m)
             )
             
             calendar$crop.id[idx] <- cropid
+            calendar$prevcrop.id[last(idx):nrow(calendar)] <- cropid
+            calendar$nextcrop.id[first(idx):nrow(calendar)] <- nextcropid
+            calendar$prevcrop.id[idx] <- prevcropid
             calendar$active[idx]  <- 1
             
             ## mark sowing & harvest
@@ -88,7 +96,6 @@ expand_rotation_calendar <- function(
             
             calendar$harvest[calendar$year == harv_year &
                              calendar$month == harv_m] <- TRUE
-
 
             ## After harvest, assign next crop.id immediately
 
@@ -125,6 +132,10 @@ expand_rotation_calendar <- function(
             
             crop_index <- crop_index + 1
             if (crop_index > nrow(df)) crop_index <- 1
+            prevcrop_index <- prevcrop_index + 1
+            if (prevcrop_index > nrow(df)) prevcrop_index <- 1
+            nextcrop_index <- nextcrop_index + 1
+            if (nextcrop_index > nrow(df)) nextcrop_index <- 1
         }
     }
     
