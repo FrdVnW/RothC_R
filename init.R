@@ -19,7 +19,6 @@ source("./R/expand_cover_crop.R")
 source("./R/expand_eom_application.R")
 source("./R/expand_irrigation.R")
 
-
 ## ==========
 ## Run Roth-C
 ## ==========
@@ -145,27 +144,28 @@ if (FALSE) {
         n_years = 30
     )
 
+    
     ## == c - Add cover crops information ==================================
     rothc.calendar2 <- expand_cover_crop(
         rotation_calendar = rothc.calendar,
         df = df.crop
     )
 
-    ## == c - Add irrigation application ===================================
+    ## == c - Add irrigation application ==================================
     rothc.calendar3 <- expand_irrigation_calendar(
         rotation_calendar = rothc.calendar2,
         df = df.crop
     )
     ## View(rothc.calendar3)
 
-    ## == d - Add external organic matter application =======================
+    ## == d - Add external organic matter application =====================  
     rothc.calendar4 <- expand_eom_calendar(
         rotation_calendar = rothc.calendar3,
         df = df.crop
     )
+    
     ## View(rothc.calendar4)
-
-
+    
     ## == e - export intermediate file
     write.csv(
         rothc.calendar4,
@@ -263,6 +263,13 @@ if (FALSE) {
                    )
                )
 
+    write.csv(
+        rothc.calendar8,
+        file = "./containers/2b_from_rotation_code/data-output/raw_calendar_8.csv"
+    )
+
+    stop("Hey la coco !!!!")
+    
     ## == g - get meteo data =================================================
     source("~/Code/R/fredtoolbox/10_meteo.R")
 
