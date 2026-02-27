@@ -268,6 +268,15 @@ if (FALSE) {
         file = "./containers/2b_from_rotation_code/data-output/raw_calendar_8.csv"
     )
 
+
+
+    g.rot <- f.plot.rotation(rothc.calendar8)
+
+    ggsave("./containers/2b_from_rotation_code/fig/schema_rotation.png",
+           width = 15, height = 10)
+    
+
+    
     stop("Hey la coco !!!!")
     
     ## == g - get meteo data =================================================
