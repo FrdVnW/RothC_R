@@ -4,13 +4,16 @@
 
 Roth C models the turnover of organic carbon in non-waterlogged top-soil.  It accounts for the effects of soil texture, temperature, moisture content and plant cover on the turnover process. It uses a monthly time step to calculate total organic carbon (t ha<sup>-1</sup>), microbial biomass carbon (t ha<sup>-1</sup>) and Δ<sup>14</sup>C (from which the equivalent radiocarbon age of the soil can be calculated). 
 
-## Development history
+## This release
+**Version 1.0.2:** Minor changes to RothC_R_script.R and RothC_R_using_function.R relating to working directory and the sourced filename.
+
+## Model history
 
 The first version of RothC created by David Jenkinson and James Rayner in 1977 (Jenkinson and Rayner, 1977).
 
 In 1987 an updated version was published, see Jenkinson et al. (1987).  This version included the prediction of the radiocarbon age of the soil, the pools POM (physically stabilized organic matter) and COM (chemically stabilized organic matter) were replaced with Hum (humified organic matter) and IOM (inert organic matter), and the microbial biomass pool was split into BioA (autochthonous biomass) and BioZ (zymogenous biomass).  
 
-**In 1990, the two biomass pools were combined into a single pool (Jenkinson, 1990) this version is the standard version of the model, that this code refers to.**
+**In 1990, the two biomass pools were combined into a single pool (Jenkinson, 1990) this version is the classic version of the model, that this code refers to.**
 
 Other published developments of the model include:
 

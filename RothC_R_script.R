@@ -1,4 +1,4 @@
-# RothC R version 1.0.0
+# RothC R version 1.0.2
 # 
 # Authors: Jonah Prout, Alice Milne, and Kevin Coleman
 #
@@ -129,7 +129,7 @@ SMD <- 0.0
 TOC1 <- 0.0
 
 # read in RothC input data file 
-setwd("B:/Github_RothC_development/RothC_R/")
+# requires full filepath if file not in working directory
 df_head <- read.csv('RothC_input.dat', skip = 3, header = 1, nrows = 1, sep = '')# sep = '' can be removed if file is comma delimited
 clay <- df_head[[1,'clay']]
 depth <- df_head[[1,'depth']]

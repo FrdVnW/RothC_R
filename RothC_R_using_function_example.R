@@ -1,4 +1,4 @@
-source("RothC_R_v1.0.0_function.R")
+source("RothC_R_function.R")
 
 RothC_model(filename = "RothC_input.dat")
 
