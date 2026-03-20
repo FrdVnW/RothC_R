@@ -66,7 +66,7 @@ expand_cover_crop <- function(rotation_calendar,
     )
     
     # fill cover crop info
-    cal$cover.id[idx]         <- cal$cover_id[i]
+    cal$cover.id[idx]         <- as.numeric(cal$cover_id[i])
     cal$cover.active[idx]     <- 1
     
     # mark sowing and harvest

@@ -20,6 +20,18 @@ source("./R/expand_eom_application.R")
 source("./R/expand_irrigation.R")
 source("./R/plotting_rotation.R")
 
+
+## for soil2soc
+devtools::load_all("/opt/R/src/socmor/")
+
+## Data
+crop.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/crop_residues.xlsx")
+eom.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/eom.xlsx")
+
+
+
+
+
 ## ==========
 ## Run Roth-C
 ## ==========
@@ -97,15 +109,12 @@ if (FALSE) {
 ## 2b Build the dat file from scratch (expand from a crop rotation)
 ## ----------------------------------------------------------------
 
-{
+if(FALSE){
     init.container("2b_from_rotation_code")
 
     ## ---------------
     ## Belgian C input
     ## ---------------
-
-    crop.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/crop_residues.xlsx")
-    eom.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/eom.xlsx")
 
     ## == a - Crop management input data ==================================
 
@@ -290,7 +299,7 @@ if (FALSE) {
         type = "rds"
     )
 
-    df.meteo <- compute.agromet.stat(df.agromet) %>%
+    df.climate <- compute.agromet.stat(df.agromet) %>%
         dplyr::rename(Tmp = temp,
                       Evap = ep,
                       Rain.meteo = precip)
@@ -298,7 +307,7 @@ if (FALSE) {
     ## --> join meteo data and add irrigation to rain
     rothc.calendar9 <- rothc.calendar8 |>
         dplyr::left_join(
-                   df.meteo,
+                   df.climate,
                    by = join_by(`month`)
                ) |>
         dplyr::mutate(
@@ -413,14 +422,12 @@ if (FALSE) {
     ## Belgian C input
     ## ---------------
 
-    crop.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/crop_residues.xlsx")
-    eom.cin <- readxl::read_xlsx("~/Code/Projects/momatorsow/data-raw/eom.xlsx")
 
     ## == a - Crop management input data ==================================
 
     ## example data 3Y rotation Sugar beet - Winter Wheat - Winter Barley
 
-    input.xlsx.file = "/home/fred/Code/Projects/SocMo/data-raw/xlsx_craw_plateformes/SYCI.xlsx"
+    input.xlsx.file = "/home/fred/Code/Projects/SocMo/data-raw/xlsx_new_input/input_SocMo_v2.xlsx"
     ## crop.id.SEQ <- c(      15,               8,              7     )
     ## sowing.date.SEQ <- c( "03-04",          "15-10",        "01-10")
     ## harvest.date.SEQ <- c("30-10",          "01-08",        "01-07")
@@ -435,25 +442,22 @@ if (FALSE) {
     ## eom.q.SEQ = c(          30,              NA,            NA     )
 
 
+    l.rothc.input <- f.rothc.xlsx.2.dataframe(
+        input.xlsx.file = input.xlsx.file,
+        ids = 2
+    )
+    
+    df.crop <- l.rothc.input$crop
+    
+
+    l.rothc.input$info
+    
+
+    
+
 
 
     
-    df.crop <- data.frame(
-        num.crop = 1:length(crop.id.SEQ),
-        crop.id = crop.id.SEQ,
-        sowing.date = sowing.date.SEQ,
-        harvest.date = harvest.date.SEQ,
-        covercrop.id = covercrop.id.SEQ, 
-        covercrop.sowing.date = covercrop.sowing.date.SEQ,
-        covercrop.destruction.date = covercrop.destruction.date.SEQ,
-        irrig.q = irrig.q.SEQ,
-        irrig.date.start = irrig.date.start.SEQ,
-        irrig.date.stop = irrig.date.stop.SEQ,
-        eom.id = eom.id.SEQ,
-        eom.date = eom.date.SEQ,
-        eom.q = eom.q.SEQ
-    )
-
     ## == b - Initiate calender with crop rotation =========================
     rothc.calendar <- expand_rotation_calendar(
         df.crop,
@@ -544,8 +548,6 @@ if (FALSE) {
                       -`Apport C humifié (t C/ha)`
                       )
 
-    h(rothc.calendar6,n=30)
-
     ## --> C input from both crops and cover crops & plant cover
     rothc.calendar7 <- rothc.calendar6 |>
         dplyr::mutate(
@@ -593,31 +595,19 @@ if (FALSE) {
            width = 15, height = 10)
     
 
-    
-    ## stop("Hey la coco !!!!")
-    
     ## == g - get meteo data =================================================
-    source("~/Code/R/fredtoolbox/10_meteo.R")
-
-    df.agromet <- read.agromet.datafile(
-        "~/Code/Projects/momatorsow/data-raw/Sombreffe_tsa_plu_etp",
-        ## "~/Code/Projects/momatorsow/data-raw/27_010985_171020_jour.txt"
-        type = "rds"
-    )
-
-    df.meteo <- compute.agromet.stat(df.agromet) %>%
-        dplyr::rename(Tmp = temp,
-                      Evap = ep,
-                      Rain.meteo = precip)
-
+    df.climate <- l.rothc.input$climate
+    
     ## --> join meteo data and add irrigation to rain
     rothc.calendar9 <- rothc.calendar8 |>
         dplyr::left_join(
-                   df.meteo,
+                   df.climate,
                    by = join_by(`month`)
                ) |>
         dplyr::mutate(
-                   Rain = Rain.meteo + irrigation
+                   Tmp = temp,
+                   Rain = precip + irrigation,
+                   Evap = ep_api
                )
 
     ## == h - radio carbon & DPM_RPM ration ==========================
@@ -637,27 +627,25 @@ if (FALSE) {
                    DPM_RPM = 1.44
                )
 
-    h(rothc.calendar10, 50)
+    ## h(rothc.calendar10, 50)
 
     ## == i - Environmental input data ===============================
-
-    clay <- read.csv2("/home/fred/Data/BdD/Texture_LT.csv") %>%
-        dplyr::select(Argile) %>%
-        dplyr::pull() %>%
-        mean() %>%
-        round(1)
-    depth <- 25 
-    iom <- 3.0041
-    nsteps <- dim(rothc.calendar10)[1]
+    df.soil <- l.rothc.input$soil %>% as.data.frame() %>%
+        dplyr::select(
+                   clay, soil.depth
+               ) %>%
+        dplyr::rename(
+                   depth = soil.depth) %>%
+        dplyr::mutate(
+                   iom = 3.0041
+                   )
 
     ## == j - 2 main data frames and write the dat file ==============
 
-    df.fixed.values <- data.frame(
-        clay = clay,
-        depth = depth,
-        iom = iom,
-        nsteps = nsteps
-    )
+    df.fixed.values <- df.soil %>%
+        dplyr::mutate(
+                   nsteps = dim(rothc.calendar10)[1]
+               )
 
     df.simul.values <- rothc.calendar10 |>
         dplyr::select(
@@ -688,11 +676,7 @@ if (FALSE) {
               "./containers/2b_from_rotation_code/data-output/simul_values_full_input.csv"
               )
 
-
-
-
     ## == k - run and export results
-
     res <- ROTH_C(
         filename = "./containers/2b_from_rotation_code/data-raw/RothC_input.dat"
     )

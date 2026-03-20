@@ -1,7 +1,7 @@
 expand_rotation_calendar <- function(
                                      df,
-                                     sowing.var = "sowing.date",
-                                     harvest.var = "harvest.date",
+                                     sowing.var = "crop.sowing.date",
+                                     harvest.var = "crop.harvest.date",
                                      start_year = 2020,
                                      n_years = 30
                                      ) {
@@ -112,7 +112,7 @@ expand_rotation_calendar <- function(
                 month_id(calendar$year, calendar$month) <= end_fill_id
             )
 
-            calendar$crop.id[fill_idx] <- next_cropid
+            calendar$crop.id[fill_idx] <- as.numeric(next_cropid)
 
             ## move pointer:
             ## next crop can start sowing in SAME harvest month
