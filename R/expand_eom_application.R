@@ -3,7 +3,7 @@ expand_eom_calendar <- function(rotation_calendar,
                                 eom_id_var = "eom.id",
                                 eom_date_var = "eom.date",
                                 eom_q_var = "eom.q") {
-    
+
     ## Extract eom_app_q months safely (allow NA)
     df$eom_month <- ifelse(
         is.na(df[[eom_date_var]]),
@@ -31,8 +31,8 @@ expand_eom_calendar <- function(rotation_calendar,
             slice(1) %>%     # <-- première occurrence par groupe
             ungroup() %>%
             mutate(
-                eom_app_id  = df[[eom_id_var]][crop_index],
-                eom_app_q   = df[[eom_q_var]][crop_index] #,
+                eom_app_id  = as.numeric(df[[eom_id_var]][crop_index]),
+                eom_app_q   = as.numeric(df[[eom_q_var]][crop_index]) #,
                 ## eom_month   = df$eom_month[crop_index]
             ) %>%
             dplyr::select(-is_target)
