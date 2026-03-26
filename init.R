@@ -416,6 +416,7 @@ if(FALSE){
 ## 2c Build the dat file from simple excel file
 ## --------------------------------------------
 {
+    my.container <- "2c_from_rotation_xlsx"
     init.container("2c_from_rotation_xlsx")
        
     ## ---------------
@@ -490,7 +491,7 @@ if(FALSE){
     ## == e - export intermediate file
     write.csv(
         rothc.calendar4,
-        file = "./containers/2b_from_rotation_code/data-output/raw_calendar.csv"
+        file = paste0("./containers/",my.container,"/data-output/raw_calendar.csv")
     )
 
     ## == f - compute C input from crops, cover crops and eom ================
@@ -584,14 +585,14 @@ if(FALSE){
 
     write.csv(
         rothc.calendar8,
-        file = "./containers/2b_from_rotation_code/data-output/raw_calendar_8.csv"
+        file = paste0("./containers/",my.container,"/data-output/raw_calendar_8.csv")
     )
 
 
 
     g.rot <- f.plot.rotation(rothc.calendar8)
 
-    ggsave("./containers/2b_from_rotation_code/fig/schema_rotation.png",
+    ggsave(paste0("./containers/",my.container,"/fig/schema_rotation.png"),
            width = 15, height = 10)
     
 
@@ -664,26 +665,26 @@ if(FALSE){
     f.rothc.dataframe.2.dat(
         df.fixed.values,
         df.simul.values,
-        output.dat.file = "./containers/2b_from_rotation_code/data-raw/RothC_input.dat"
+        output.dat.file = paste0("./containers/",my.container,"/data-raw/RothC_input.dat")
     )
 
 
     write.csv(df.simul.values,
-              "./containers/2b_from_rotation_code/data-output/simul_values.csv"
+              paste0("./containers/",my.container,"/data-output/simul_values.csv")
               )
 
     write.csv(rothc.calendar10,
-              "./containers/2b_from_rotation_code/data-output/simul_values_full_input.csv"
+              paste0("./containers/",my.container,"/data-output/simul_values_full_input.csv")
               )
 
     ## == k - run and export results
     res <- ROTH_C(
-        filename = "./containers/2b_from_rotation_code/data-raw/RothC_input.dat"
+        filename = paste0("./containers/",my.container,"/data-raw/RothC_input.dat")
     )
 
     EXPORT_ROTHC_RES(
         res,
-        "2b_from_rotation_code"
+        my.container
     )
 
     ## Plotting direct
@@ -693,11 +694,11 @@ if(FALSE){
     ## Save in objects and files
     g.yearly.res <- PLOT_ROTHC_RES(res = res)
     ## g.yearly.res ## show
-    ggsave("./containers/2b_from_rotation_code/fig/yearly_res.png")
+    ggsave(paste0("./containers/",my.container,"/fig/yearly_res.png"))
 
     g.monthly.res <- PLOT_ROTHC_RES(res = res, step = "months")
     ## g.monthly.res ## show
-    ggsave("./containers/2b_from_rotation_code/fig/monthly_res.png")
+    ggsave(paste0("./containers/",my.container,"/fig/monthly_res.png"))
 
 }
 
