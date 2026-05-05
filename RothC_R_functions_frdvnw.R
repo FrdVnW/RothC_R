@@ -76,8 +76,9 @@ RMF_Moist <- function(RAIN, PEVAP, clay, depth, PC, SMD){
     SMD1bar <- 0.444*SMDMaxAdj
     SMDBare <- 0.556*SMDMaxAdj
     
-    DF <- RAIN - 0.75*PEVAP ## 0.75 is used as a pan coefficient to convert open-pan evaporation to potential evapotranspiration
-    
+    ## DF <- RAIN - 0.75*PEVAP ## 0.75 is used as a pan coefficient to convert open-pan evaporation to potential evapotranspiration
+    DF <- RAIN - PEVAP ## potential evapotranspiration data available
+
     minSMDDF <- min(0.0, SMD+DF)
     minSMDBareSMD <- min(SMDBare, SMD)
     
