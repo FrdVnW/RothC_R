@@ -95,7 +95,6 @@ RMF_Moist <- function(RAIN, PEVAP, clay, depth, PC, SMD){
     } else {
         RM_Moist <- (RMFMin + (RMFMax - RMFMin) * (SMDMaxAdj - SMD1) / (SMDMaxAdj - SMD1bar))
     }
-    
 }
 
 ## Calculates the plant retainment modifying factor (RMF_PC)
@@ -105,7 +104,6 @@ RMF_PC <- function(PC){
     } else {
         RM_PC <- 0.6 
     }
-    
 }
 
 ###############################################################################
@@ -114,7 +112,10 @@ RMF_PC <- function(PC){
 ## setwd("B:/Github_RothC_development/RothC_R/")
 
 ROTH_C <- function(filename,
-                   my.sep = ''
+                   my.sep = '',
+                   timeFact = 12, ## spin up phase in month,
+                   op.soc.initial.adj = NULL,
+                   op.spin.up.sensitivity = 0.000001
                    ){
     ## set initial pool values (0 to allow spin-up method)
     DPM <- 0.0
@@ -141,17 +142,18 @@ ROTH_C <- function(filename,
     nsteps <- df_head[[1,'nsteps']]
     df <- read.csv(filename, skip = 6, header = 1, sep = my.sep)
     colnames(df) <- c('t_year', 't_month', 't_mod', 't_temp','t_rain','t_evap', 't_Pl_inp', 't_OA_inp', 't_PC', 't_DPM_RPM')
-
+    
     ## run RothC to equilibrium using first 12 months of input file df (spin-up)
     k <- 0
     j <- 0
-
+    
     SOC <- DPM + RPM + Bio + Hum + IOM
-
-    timeFact <- 12
-
+    
+    ## timeFact <- 12
     test = 100.0
-    while(test > 0.000001){
+    while(test > op.spin.up.sensitivity){
+        cat(test, " - ", k, " - ", j, "C=",SOC,"t C/ha \n")
+        
         k <- k + 1
         j <- j + 1
         
@@ -323,7 +325,44 @@ ROTH_C <- function(filename,
             test <- abs(TOC1-TOC0)
         }
     }
+    
+    if (!is.null(op.soc.initial.adj)) {
+        ## === Ajustement au SOC observé ===
 
+        SOC_obs <- op.soc.initial.adj
+        
+        SOC_spinup <- DPM + RPM + Bio + Hum + IOM
+
+        ## on ne scale QUE les pools actifs
+        SOC_actif_spinup <- DPM + RPM + Bio + Hum
+        SOC_actif_obs <- SOC_obs - IOM
+
+        ## facteur de correction
+        f <- SOC_actif_obs / SOC_actif_spinup
+
+        ## application
+        DPM <- DPM * f
+        RPM <- RPM * f
+        Bio <- Bio * f
+        Hum <- Hum * f
+
+        ## recalcul SOC
+        SOC <- DPM + RPM + Bio + Hum + IOM
+
+        cat("\n\nSpin-up ajusté : SOC =", SOC, "t C/ha (obs =", SOC_obs, ")\n")
+        
+        cat("Facteur de correction f =", f, "\n\n")
+        
+        if(SOC_actif_spinup <= 0){
+            stop("SOC actif nul après spin-up")
+        }
+
+        if(f < 0){
+            stop("Facteur de scaling négatif")
+        }
+
+    }
+    
     Total_Delta <- (exp(-Total_Rage/8035.0) - 1.0) * 1000.0
 
     co2_tot <- 0
@@ -332,10 +371,12 @@ ROTH_C <- function(filename,
     year_list[[1]] <- data.frame(1, j, DPM, RPM, Bio, Hum, IOM, SOC, co2_tot, Total_Delta)
     colnames(year_list[[1]]) <- c('Year','Month','DPM_t_C_ha','RPM_t_C_ha','Bio_t_C_ha','Hum_t_C_ha','IOM_t_C_ha','SOC_t_C_ha','CO2_t_C_ha','deltaC')
 
-    month_list <- list()
-
+    month_list <- list()  
+    
     ## run RothC after spin-up
-    for(i in seq(timeFact+1, nsteps,1)){
+    ## for(i in seq(timeFact+1, nsteps,1)){
+    ## I added one year before for plotting the end of the previous rotation in the graph
+    for(i in seq(timeFact-12, nsteps,1)){
         
         TEMP <- df$t_temp[i]
         RAIN <- df$t_rain[i]
@@ -482,21 +523,26 @@ ROTH_C <- function(filename,
         Total_Delta <- (exp(-Total_Rage/8035.0) - 1.0)*1000.0
         
         ## appending outputs to a list
-        month_list[[i-timeFact]] <- data.frame(
+        ## timeFact -> 12 ?
+        ## month_list[[i-12]] <- data.frame(
+        month_list[[i-12]] <- data.frame(
             df[[i, 't_year']], df[[i,'t_month']],Pl_inp, OA_inp,
             TEMP, RM_Temp, RAIN, PEVAP, SMD, RM_Moist, PC, RM_PC,
             DPM, RPM, Bio, Hum, IOM,
             SOC, co2_tot
         )
-        colnames(month_list[[i-timeFact]]) = c(
+        ## timeFact -> 12
+        colnames(month_list[[i-12]]) = c(
             'Year','Month','Pl_inp_t_C_ha','OA_inp_t_C_ha',
             'TEMP_C','RM_Temp','RAIN_mm','PEVAP_mm','SMD_mm','RM_Moist','PC','RM_PC',
             'DPM_t_C_ha','RPM_t_C_ha','Bio_t_C_ha','Hum_t_C_ha','IOM_t_C_ha',
             'SOC_t_C_ha',"CO2_t_C_ha"
         )
         ## appending outputs to end of year_list when loop i equals timeFact
-        if(df$t_month[i] == timeFact){
-            timeFact_index <- as.integer(i/timeFact)
+        ## no ... fix to 12
+        ## if(df$t_month[i] == timeFact){
+        if(df$t_month[i] == 12){
+            timeFact_index <- as.integer(i/12) ## i/timeFact
             year_list[[timeFact_index]] <- data.frame(
                 df[i,'t_year'], df[i,'t_month'],
                 DPM, RPM, Bio, Hum, IOM,
@@ -510,7 +556,7 @@ ROTH_C <- function(filename,
             ## print(paste(i, DPM, RPM, Bio, Hum, IOM, SOC, Total_Delta))
         }
     }
-
+    
     res <- list()
     res[["output_years"]] <- do.call(rbind,year_list)
 
